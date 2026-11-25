@@ -1,0 +1,46 @@
+name: Crea APK Lista Spesa
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Scarica i file del progetto
+        uses: actions/checkout@v4
+
+      - name: Prepara Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prepara Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Controlla il file della lista
+        run: |
+          if [ ! -f index.html ]; then
+            echo "Manca index.html: carica prima il file della lista."
+            exit 1
+          fi
+
+      - name: Prepara il progetto Android
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+          cat > package.json <<'EOF'
+          {
+            "name": "lista-spesa",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies
