@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Lista spesa</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --accent: #16a085;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px 10px;
+      padding-top: max(20px, env(safe-area-inset-top));
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      font-size: 16px;
+    }
+
+    main {
+      max-width: 850px;
+      margin: auto;
+    }
+
+    input, select, button {
+      font: inherit;
+      color: #fff;
+    }
+
+    input, select {
+      max-width: 100%;
+      padding: 6px;
+      border: 1px solid #666;
+      border-radius: 6px;
+      background: #000;
+    }
+
+    input::placeholder {
+      color: #fff;
+      opacity: 0.8;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 6px 8px;
+      border: 1px solid #666;
+      border-radius: 7px;
+      background: #111;
+      cursor: pointer;
+    }
+
+    #title {
+      width: 100%;
+      margin: 10px 0 20px;
+      border: none;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    details {
+      margin: 15px 0;
+      padding: 12px;
+      border: 1px solid #555;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    summary {
+      cursor: pointer;
+    }
+
+    .settings {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="color"] {
+      width: 42px;
+      height: 36px;
+      padding: 2px;
+      flex-shrink: 0;
+    }
+
+    .custom-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 0;
+    }
+
+    .custom-row span {
+      flex: 1;
+      min-width: 90px;
+    }
+
+    .custom-row button {
+      font-size: 12px;
+    }
+
+    .filter {
+      margin: 18px 0;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid #666;
+      border-radius: 12px;
+    }
+
+    section {
+      min-width: 0;
+      padding: 12px;
+      background: #000;
+    }
+
+    section + section {
+      border-left: 1px solid #888;
+    }
+
+    .category {
+      width: 100%;
+      padding: 10px 0;
+      border: none;
+      border-bottom: 1px solid #555;
+      border-radius: 0;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .item {
+      padding: 12px 0;
+      border-bottom: 1px solid #444;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .name {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 0;
+      border: none;
+    }
+
+    .dot {
+      flex: 0 0 28px;
+      width: 28px;
+      height: 28px;
+      min-height: 0;
+      padding: 0;
+      border: 1px solid #777;
+      border-radius: 50%;
+      background: #444;
+      background: color-mix(in srgb, var(--accent) 22%, #444);
+      color: transparent;
+    }
+
+    .dot.on {
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      color: #fff;
+      text-shadow: 0 1px 3px #000;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .qty {
+      width: 57px;
+      min-width: 0;
+    }
+
+    .controls select {
+      width: 100px;
+      min-width: 0;
+    }
+
+    .remove {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .add {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .add input, .add button {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .note {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 420px) {
+      section {
+        padding: 8px;
+      }
+
+      .category {
+        font-size: 16px;
+      }
+
+      .name {
+        font-size: 14px;
+      }
+
+      .dot {
+        flex-basis: 25px;
+        width: 25px;
+        height: 25px;
+      }
+
+      .qty {
+        width: 49px;
+      }
+
+      .controls {
+        gap: 3px;
+      }
+
+      .controls select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <input id="title" aria-label="Titolo modificabile">
+
+  <details>
+    <summary>Colori e personalizzazione</summary>
+
+    <div class="settings">
+      <label>
+        Colore titolo
+        <input type="color" id="titleColor">
+      </label>
+
+      <label>
+        Colore generale prodotti
+        <input type="color" id="textColor">
+      </label>
+
+      <label>
+        Colore pallini
+        <input type="color" id="color">
+      </label>
+
+      <button id="resetColors" type="button">
+        Applica il colore generale a tutti i prodotti
+      </button>
+    </div>
+
+    <details>
+      <summary>Colori dei singoli prodotti</summary>
+      <div id="customColors"></div>
+    </details>
+  </details>
+
+  <label class="filter">
+    <input type="checkbox" id="filter">
+    Solo da comprare
+  </label>
+
+  <div id="board"></div>
+
+  <p class="note">
+    Tocca il titolo, i nomi delle categorie o i prodotti per modificarli.
+    I dati sono salvati solo su questo dispositivo.
+    Disinstallare l’app o cancellarne i dati può eliminare la lista.
+  </p>
+</main>
+
+<script>
+  const storageKey = "lista-spesa-android-v1";
+
+  function makeItems(names) {
+    return names.map(name => ({
+      name,
+      qty: 1,
+      unit: "pezzi",
+      on: false,
+      textColor: ""
+    }));
+  }
+
+  function initialState() {
+    return {
+      title: "Lista spesa",
+      titleColor: "#ffffff",
+      textColor: "#ffffff",
+      color: "#16a085",
+      groups: [
+        {
+          name: "Alimentari",
+          items: makeItems([
+            "Aceto", "Acqua minerale", "Aglio", "Biscotti",
+            "Burro", "Caffè", "Carne", "Cipolle",
+            "Camomilla", "Farina", "Formaggio", "Grissini",
+            "Lardo", "Latte", "Limoni", "Olio",
+            "Pane", "Pasta", "Patate", "Pepe",
+            "Riso", "Sale", "Salsa", "Uova",
+            "Vino", "Zucchero"
+          ])
+        },
+        {
+          name: "Non alimentari",
+          items: makeItems([
+            "Detersivi", "Fiammiferi", "Paglietta ferro",
+            "Pomice", "Sapone", "Soda"
+          ])
+        }
+      ]
+    };
+  }
+
+  let state = initialState();
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+
+    if (saved && Array.isArray(saved.groups)) {
+      state = saved;
+    }
+  } catch (error) {
+    // Usa la lista iniziale se il salvataggio non è leggibile.
+  }
+
+  let onlyNeeded = false;
+  let saveWarningShown = false;
+
+  function save() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    } catch (error) {
+      if (!saveWarningShown) {
+        alert("Salvataggio non disponibile: le modifiche potrebbero andare perse.");
+        saveWarningShown = true;
+      }
+    }
+  }
+
+  function element(tag, attributes = {}, text) {
+    const node = document.createElement(tag);
+
+    for (const [key, value] of Object.entries(attributes)) {
+      if (key.startsWith("on")) {
+        node.addEventListener(key.slice(2), value);
+      } else {
+        node.setAttribute(key, value);
+      }
+    }
+
+    if (text !== undefined) {
+      node.textContent = text;
+    }
+
+    return node;
+  }
+
+  const title = document.getElementById("title");
+  title.value = state.title;
+  title.style.color = state.titleColor;
+  document.title = state.title;
+
+  title.addEventListener("input", event => {
+    state.title = event.target.value;
+    document.title = state.title || "Lista spesa";
+    save();
+  });
+
+  title.addEventListener("blur", () => {
+    if (!state.title.trim()) {
+      state.title = "Lista spesa";
+      title.value = state.title;
+      document.title = state.title;
+      save();
+    }
+  });
+
+  function changeQuantity(item, amount) {
+    item.qty = Math.max(
+      0.01,
+      Math.round((item.qty + amount) * 100) / 100
+    );
+    save();
+    render();
+  }
+
+  function render() {
+    document.documentElement.style.setProperty("--accent", state.color);
+
+    const board = document.getElementById("board");
+    const customColors = document.getElementById("customColors");
+
+    board.replaceChildren();
+    customColors.replaceChildren();
+
+    state.groups.forEach((group, groupIndex) => {
+      const section = element("section");
+
+      section.append(element("input", {
+        class: "category",
+        value: group.name,
+        "aria-label": "Nome categoria",
+        onchange: event => {
+          group.name = event.target.value.trim() || "Categoria";
+          save();
+          render();
+        }
+      }));
+
+      customColors.append(element("h4", {}, group.name));
+
+      group.items.forEach((item, itemIndex) => {
+        const id = groupIndex + "-" + itemIndex;
+        const colorRow = element("div", { class: "custom-row" });
+
+        const picker = element("input", {
+          type: "color",
+          value: item.textColor || state.textColor,
+          "aria-label": "Colore nome " + item.name,
+          oninput: event => {
+            item.textColor = event.target.value;
+
+            const field = document.getElementById("product-" + id);
+            if (field) {
+              field.style.color = item.textColor;
+            }
+
+            save();
+          }
+        });
+
+        colorRow.append(
+          element("span", {}, item.name),
+          picker,
+          element("button", {
+            type: "button",
+            onclick: () => {
+              item.textColor = "";
+              save();
+              render();
+            }
+          }, "Colore generale")
+        );
+
+        customColors.append(colorRow);
+
+        if (onlyNeeded && !item.on) {
+          return;
+        }
+
+        const row = element("div", { class: "item" });
+        const top = element("div", { class: "top" });
+
+        const dot = element("button", {
+          type: "button",
+          class: "dot" + (item.on ? " on" : ""),
+          "aria-label": "Da comprare: " + item.name,
+          "aria-pressed": String(item.on),
+          onclick: () => {
+            item.on = !item.on;
+            save();
+            render();
+          }
+        }, "✓");
+
+        const name = element("input", {
+          id: "product-" + id,
+          class: "name",
+          value: item.name,
+          "aria-label": "Nome prodotto",
+          onchange: event => {
+            item.name = event.target.value.trim() || "Prodotto";
+            save();
+            render();
+          }
+        });
+
+        name.style.color = item.textColor || state.textColor;
+        top.append(dot, name);
+
+        const controls = element("div", { class: "controls" });
+
+        const quantity = element("input", {
+          class: "qty",
+          type: "number",
+          min: "0.01",
+          step: "any",
+          value: item.qty,
+          "aria-label": "Quantità di " + item.name,
+          onchange: event => {
+            const number = Number(event.target.value);
+
+            if (Number.isFinite(number) && number > 0) {
+              item.qty = number;
+            }
+
+            save();
+            render();
+          }
+        });
+
+        const unit = element("select", {
+          "aria-label": "Unità di misura di " + item.name,
+          onchange: event => {
+            item.unit = event.target.value;
+            save();
+          }
+        });
+
+        ["pezzi", "confezioni", "kg", "g", "litri", "ml"].forEach(value => {
+          const option = element("option", { value }, value);
+          option.selected = item.unit === value;
+          unit.append(option);
+        });
+
+        controls.append(
+          element("button", {
+            type: "button",
+            "aria-label": "Diminuisci quantità di " + item.name,
+            onclick: () => changeQuantity(item, -1)
+          }, "−"),
+          quantity,
+          element("button", {
+            type: "button",
+            "aria-label": "Aumenta quantità di " + item.name,
+            onclick: () => changeQuantity(item, 1)
+          }, "+"),
+          unit
+        );
+
+        const remove = element("button", {
+          type: "button",
+          class: "remove",
+          onclick: () => {
+            if (confirm("Eliminare “" + item.name + "”?")) {
+              group.items.splice(itemIndex, 1);
+              save();
+              render();
+            }
+          }
+        }, "Elimina");
+
+        row.append(top, controls, remove);
+        section.append(row);
+      });
+
+      const input = element("input", {
+        placeholder: "Nuovo prodotto",
+        "aria-label": "Nuovo prodotto in " + group.name,
+        required: ""
+      });
+
+      const form = element("form", {
+        class: "add",
+        onsubmit: event => {
+          event.preventDefault();
+          const name = input.value.trim();
+
+          if (!name) {
+            return;
+          }
+
+          group.items.push({
+            name,
+            qty: 1,
+            unit: "pezzi",
+            on: false,
+            textColor: ""
+          });
+
+          save();
+          render();
+        }
+      });
+
+      form.append(
+        input,
+        element("button", { type: "submit" }, "Aggiungi")
+      );
+
+      section.append(form);
+      board.append(section);
+    });
+  }
+
+  ["titleColor", "textColor", "color"].forEach(key => {
+    const picker = document.getElementById(key);
+    picker.value = state[key];
+
+    picker.addEventListener("input", event => {
+      state[key] = event.target.value;
+      save();
+
+      if (key === "titleColor") {
+        title.style.color = state.titleColor;
+      } else if (key === "color") {
+        document.documentElement.style.setProperty("--accent", state.color);
+      } else {
+        render();
+      }
+    });
+  });
+
+  document.getElementById("resetColors").addEventListener("click", () => {
+    if (!confirm("Applicare il colore generale a tutti i prodotti?")) {
+      return;
+    }
+
+    state.groups.forEach(group => {
+      group.items.forEach(item => {
+        item.textColor = "";
+      });
+    });
+
+    save();
+    render();
+  });
+
+  document.getElementById("filter").addEventListener("change", event => {
+    onlyNeeded = event.target.checked;
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
