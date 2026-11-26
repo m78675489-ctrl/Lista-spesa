@@ -9,7 +9,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Scarica i file del progetto
@@ -33,14 +33,26 @@ jobs:
             exit 1
           fi
 
-      - name: Prepara il progetto Android
-        run: |
-          mkdir -p www
-          cp index.html www/index.html
+      - name: Installa Cordova
+        run: npm install -g cordova
 
-          cat > package.json <<'EOF'
-          {
-            "name": "lista-spesa",
-            "version": "1.0.0",
-            "private": true,
-            "dependencies
+      - name: Crea il progetto Android
+        run: |
+          cordova create app com.m78675489.listaspesa "Lista Spesa"
+          cp index.html app/www/index.html
+
+      - name: Aggiungi Android
+        run: |
+          cd app
+          yes | cordova platform add android || true
+
+      - name: Crea l'APK
+        run: |
+          cd app
+          cordova build android
+
+      - name: Carica APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lista-spesa-apk
+          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
