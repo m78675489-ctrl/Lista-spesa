@@ -51,15 +51,12 @@ jobs:
           cd app
           cordova build android
 
-            - name: Trova l'APK
-        run: |
-          find app/platforms -name "*.apk" -print
+      - name: Trova l'APK
+        run: find app/platforms -name "*.apk" -print
 
       - name: Carica APK
         uses: actions/upload-artifact@v4
         with:
           name: lista-spesa-apk
-          path: |
-            app/platforms/**/app-debug.apk
-            app/platforms/**/*-debug.apk
+          path: app/platforms/**/app-debug.apk
           if-no-files-found: error
